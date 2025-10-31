@@ -1,0 +1,1 @@
+# Ignore everything by default*# But keep these folders!Training Microservice/!Gym-Spring-Boot/# Keep the docker-compose file!docker-compose.yml# Inside those folders, ignore their build outputs etc.Training Microservice/target/Gym-Spring-Boot/target/Training Microservice/.idea/Gym-Spring-Boot/.idea/
