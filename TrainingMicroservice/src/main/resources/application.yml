@@ -1,0 +1,78 @@
+server:
+  port: 8080
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URI:http://eureka-server:8761/eureka}
+  instance:
+    nonSecurePort: 8081
+    hostname: host.docker.internal
+    preferIpAddress: false
+    instanceId: ${spring.application.name}:${random.value}
+
+spring:
+  application:
+    name: training-microservice
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          private-key: |
+            -----BEGIN PRIVATE KEY-----
+            MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCFMdFezBP+UBk4
+            QpOkaBNEyrKADQSrhWqv1Q5gZvhYucZInpPpHRhCd+DTtx/xeFTj1iiasazrtFVV
+            5emwg4HRnLRMrzy0PCCO4sPc29E/g4Om5h6LpWMC0uEIcz6gjvbTbcZb0i+RYeqW
+            0IYUNgVe54VroW0qN35jMQD/aNBoR+hDOn1fNyE6tstpptyWB2JwpeoO5TatGHKn
+            mcZXSV5DpP5bu0jfi6c0MdIoTMjJ4c6GJ4Xmf/kD8290B431VthAhVdk6tiM56wO
+            b7VfoZj+2us7EK3gh/FVLTgKxYzSs8fZQ4A3OmfjYkV022D45lRE0dY/tXmUepwG
+            nc9DgbGBAgMBAAECggEAVA7so3cH5yeFwwvBQbCs+G0z2bxdhiHdArrjJ9PUR6p2
+            iL4LesLx3IDrUrHvZuUaLe+qEHaxOs/ES0GeCdf0xeSvpPWyycxof8R895WCqSLG
+            oz33aQonQlDz0/FnRMz02NoepTQw8P9qnWNcOsUc/pf+i76Etm/vQ4pZptbvL9/H
+            AHpYDLm9ZdCf5L7efnjq/ITuuWtt+bIrV09rn9P6/ExyMvkpIeEt9n73vYA6w8v/
+            0prj7lfUhATig0duoS0jkCOR482qtWONyVtw0o9m5axYj3EeEJn/Rb7JS8UW3Qu4
+            FlifBY+FGh3AWoQ6sxPhPIWud4iecPsWMokMzpE8AQKBgQDPXOGNkfBWyYO34oEA
+            cHgPjMaW79kKu3xlYUzpc6H1S6Hpv2KyQNRvIJ/8adZkW465pd0tGaHmxQfh6xZt
+            THku50tyxTKLUFQAyNJyfKhS3KDSk3ioT2h/l5iI6t/YZJSF/4kUxHWgW54vdkgH
+            IyzgT2seZSQP5iOjpqy++eCOSQKBgQCkb3/nJGoVNvr9A6PPSfVE5JDriweSA9Sq
+            4FQsUXveH3rraqkG9DdeWssWPHtkTpeXA5QvWO0bSJExx6rNazHPZN4tEgGxvHBk
+            x5ZdcJbgMowbQW5YJlDDcbvO2Uv9Th5Vi5Y9T2xG7Q8WiZbiQccxG+HY2VX0w0aV
+            2g3Jh+7peQKBgFxAUggNeQLjO7o/Bm0PnBou4tqbcc+YgUsI8pKZYuAh+bJn9pye
+            wuN9fC9rVnnnUaO96pv531EvLsaPM7cEYpU/SQ2SNV5NKlH/BcDxPGFAzjtgaDlY
+            uoCpDK887sDyXjEO8glPLZVdrQ4obPrf50MTkfA/xr9b/1b6+7cqq4AhAoGABqEA
+            FP9gz24h/CUza13d52MXfIdkTLyezCyy9/5o8fFu8SKhocgim0kpusHBb6/DaLEa
+            PjZliJ4KTGlyN0nE/klgs4xwSQwBs+5f33B0hKFFCKxAmIki5F4nZhVYfOOzUVuJ
+            OPuEr+9KlmwBiyl/sDkhh65rSqy8obniqGc0eHECgYEAhK0tGamiLVD/Jd2ZKMvd
+            jQNA5H+doMuOqWx3R3cDKg+wtcGj6lqEN8bS5tz7iMftgGNcglYnmty5NV1zZ3D6
+            p4p6HQJzCVKoWmNlOQxKK3rFJtPq5SEmnLRWSGqd9B8t5Sb2pUZl8gjppU2vSJ8F
+            SeiPS4GBFpWhomjtLdATGIw=
+            -----END PRIVATE KEY-----
+
+          public-key: |
+            -----BEGIN PUBLIC KEY-----
+            MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhTHRXswT/lAZOEKTpGgT
+            RMqygA0Eq4Vqr9UOYGb4WLnGSJ6T6R0YQnfg07cf8XhU49YomrGs67RVVeXpsIOB
+            0Zy0TK88tDwgjuLD3NvRP4ODpuYei6VjAtLhCHM+oI72023GW9IvkWHqltCGFDYF
+            XueFa6FtKjd+YzEA/2jQaEfoQzp9XzchOrbLaabclgdicKXqDuU2rRhyp5nGV0le
+            Q6T+W7tI34unNDHSKEzIyeHOhieF5n/5A/NvdAeN9VbYQIVXZOrYjOesDm+1X6GY
+            /trrOxCt4IfxVS04CsWM0rPH2UOANzpn42JFdNtg+OZURNHWP7V5lHqcBp3PQ4Gx
+            gQIDAQAB
+            -----END PUBLIC KEY-----
+
+
+  datasource:
+      url: jdbc:h2:mem:trainingsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      driver-class-name: org.h2.Driver
+
+      username: SA
+      password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
