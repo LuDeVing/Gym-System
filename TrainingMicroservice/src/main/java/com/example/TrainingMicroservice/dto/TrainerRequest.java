@@ -1,4 +1,4 @@
-package com.example.TrainingMicroservice.data;
+package com.example.TrainingMicroservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -27,8 +27,6 @@ public class TrainerRequest {
 
     @NotNull
     private String actionType;
-
-    private String transactionId;
 
     public String getTrainerUsername() {
         return trainerUsername;
@@ -86,11 +84,4 @@ public class TrainerRequest {
         this.actionType = actionType;
     }
 
-    public String getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
 }

@@ -1,24 +1,14 @@
-package com.example.TrainingMicroservice;
+package com.example.TrainingMicroservice.config;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.security.*;
@@ -30,11 +20,11 @@ import java.util.Base64;
 @Configuration
 public class SecurityConfig {
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.private-key}")
-    private String privateKeyPEM;
+    @Value("${spring.security.oauth2.resourceserver.jwt.private-key-location}")
+    private org.springframework.core.io.Resource privateKeyResource;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.public-key}")
-    private String publicKeyPEM;
+    @Value("${spring.security.oauth2.resourceserver.jwt.public-key-location}")
+    private org.springframework.core.io.Resource publicKeyResource;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -53,19 +43,24 @@ public class SecurityConfig {
 
     @Bean
     public KeyPair keyPair() throws Exception {
-        String privateKeyContent = privateKeyPEM
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");;
-        String publicKeyContent = publicKeyPEM
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");;
-
         KeyFactory kf = KeyFactory.getInstance("RSA");
 
-        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyContent)));
-        PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent)));
+        String privatePem = new String(privateKeyResource.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        String publicPem  = new String(publicKeyResource.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+
+        // Strip PEM markers and ALL whitespace (including Windows CRLF)
+        privatePem = privatePem.replaceAll("-----BEGIN (?:.*)-----", "")
+                .replaceAll("-----END (?:.*)-----", "")
+                .replaceAll("\\s", "");
+        publicPem  = publicPem.replaceAll("-----BEGIN (?:.*)-----", "")
+                .replaceAll("-----END (?:.*)-----", "")
+                .replaceAll("\\s", "");
+
+        byte[] privBytes = java.util.Base64.getDecoder().decode(privatePem);
+        byte[] pubBytes  = java.util.Base64.getDecoder().decode(publicPem);
+
+        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(privBytes));
+        PublicKey publicKey   = kf.generatePublic(new X509EncodedKeySpec(pubBytes));
 
         return new KeyPair(publicKey, privateKey);
     }

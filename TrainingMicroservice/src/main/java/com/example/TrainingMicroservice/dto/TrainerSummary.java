@@ -1,5 +1,6 @@
-package com.example.TrainingMicroservice.data;
+package com.example.TrainingMicroservice.dto;
 
+import com.example.TrainingMicroservice.misc.MonthlyHoursConverter;
 import jakarta.persistence.*;
 
 import java.util.HashMap;
