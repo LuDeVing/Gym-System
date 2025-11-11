@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;
 
-public class TrainerRequest {
+public class TrainingMicroserviceRequest {
 
     @NotNull
     private String trainerUsername;

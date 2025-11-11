@@ -15,5 +15,8 @@ COPY --from=build /app/target/Gym-Spring-Boot-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 
 ENV EUREKA_URI=http://eureka-server:8761/eureka
+ENV ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+ENV ACTIVEMQ_USER=admin
+ENV ACTIVEMQ_PASSWORD=admin
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

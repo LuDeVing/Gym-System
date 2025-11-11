@@ -9,6 +9,16 @@ spring:
           public-key-location: classpath:keys/public.pem
           private-key-location: classpath:keys/private.pem
 
+  activemq:
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
+    user: ${ACTIVEMQ_USER:admin}
+    password: ${ACTIVEMQ_PASSWORD:admin}
+    pool:
+      enabled: true
+      max-connections: 10
+  jms:
+    pub-sub-domain: true
+
 management:
   endpoints:
     web:

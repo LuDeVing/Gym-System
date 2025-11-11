@@ -1,6 +1,6 @@
 package com.example.TrainingMicroservice.Service;
 
-import com.example.TrainingMicroservice.dto.TrainerRequest;
+import com.example.TrainingMicroservice.dto.TrainingMicroserviceRequest;
 import com.example.TrainingMicroservice.dto.TrainerSummary;
 import com.example.TrainingMicroservice.repository.TrainerRepository;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class WorkloadService {
         this.repository = repository;
     }
 
-    public void processWorkload(TrainerRequest trainer, String transactionId, Jwt jwt) {
+    public void processWorkload(TrainingMicroserviceRequest trainer, String transactionId, String jwt) {
         String txId = transactionId;
         if (txId == null || txId.isBlank()) {
             txId = UUID.randomUUID().toString();
@@ -35,7 +35,7 @@ public class WorkloadService {
 
         MDC.put("transactionID", txId);
         try {
-            logger.info("Transaction {}: Received workload update request from user: {}", txId, jwt != null ? jwt.getSubject() : "anonymous");
+            logger.info("Transaction {}: Received workload update request from user: {}", txId, jwt != null ? jwt : "anonymous");
             logger.info("Transaction {}: Trainer username: {}, Action: {}, Date: {}, Duration: {}",
                     txId,
                     trainer.getTrainerUsername(),

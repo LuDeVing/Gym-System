@@ -1,47 +1,44 @@
 package com.example.org.service;
 
-import com.example.org.controllers.TrainingServiceClient;
 import com.example.org.requestBodies.TrainingMicroserviceRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.stereotype.Service;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class WorkloadProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkloadProducer.class);
 
+    private final TopicProducer topicProducer;
+
     @Autowired
-    private TrainingServiceClient trainingServiceClient;
+    public WorkloadProducer(TopicProducer topicProducer) {
+        this.topicProducer = topicProducer;
+    }
 
     public void sendTrainerWorkload(TrainingMicroserviceRequest request) {
         try {
-            String tokenValue = extractJwtTokenValue();
-            String authHeader = (tokenValue != null) ? "Bearer " + tokenValue : null;
+            String transactionId = MDC.get("transactionId");
+            String bearerToken = extractJwtTokenValue();
 
-            String transactionId = MDC.get("transactionId"); // assuming you set it earlier per request
-            ResponseEntity<Void> response = trainingServiceClient.addTrainer(authHeader, transactionId, request);
+            topicProducer.publishTrainingMicroService(request, transactionId, bearerToken);
 
-            logger.info("Training microservice response: {}", response.getStatusCode());
+            logger.info("Published training workload to topic for trainer: {}", request.getTrainerUsername());
         } catch (Exception e) {
-            logger.error("Failed to call training microservice", e);
+            logger.error("Failed to publish training workload", e);
         }
     }
 
     private String extractJwtTokenValue() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof JwtAuthenticationToken jwtAuth) {
-            Jwt jwt = jwtAuth.getToken();
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken jwtAuth) {
+            var jwt = jwtAuth.getToken();
             return jwt != null ? jwt.getTokenValue() : null;
         }
-        if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
+        if (auth != null && auth.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
             return jwt.getTokenValue();
         }
         logger.warn("No JWT found in SecurityContext");

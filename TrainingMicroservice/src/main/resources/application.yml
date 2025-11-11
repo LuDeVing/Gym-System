@@ -5,6 +5,17 @@ spring:
   application:
     name: training-microservice
 
+  activemq:
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
+    user: ${ACTIVEMQ_USER:admin}
+    password: ${ACTIVEMQ_PASSWORD:admin}
+    pool:
+      enabled: true
+      max-connections: 10
+
+  jms:
+    pub-sub-domain: true
+
   security:
     oauth2:
       resourceserver:
