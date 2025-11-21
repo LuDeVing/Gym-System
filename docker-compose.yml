@@ -1,8 +1,10 @@
+version: '3.8'
+
 services:
 
   eureka-server:
     build:
-      context: ./EurikaServer  
+      context: ./EurikaServer
       dockerfile: Dockerfile
     container_name: eureka-server
     ports:
@@ -17,42 +19,90 @@ services:
       timeout: 3s
       retries: 5
 
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  activemq:
+    image: rmohr/activemq:5.15.9
+    container_name: activemq
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      - ACTIVEMQ_ADMIN_LOGIN=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
   training-microservice:
     build:
       context: ./TrainingMicroservice
       dockerfile: Dockerfile
     container_name: training-microservice
     ports:
-      - "8081:8081"          
+      - "8081:8081"
     environment:
       - EUREKA_URI=http://eureka-server:8761/eureka
       - SPRING_PROFILES_ACTIVE=local
       - SERVER_PORT=8081
+      - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+      - ACTIVEMQ_USER=admin
+      - ACTIVEMQ_PASSWORD=admin
+      - MONGO_URI=mongodb://mongo:27017/trainingsdb
     depends_on:
       - eureka-server
+      - activemq
+      - mongo
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 5s
       timeout: 3s
       retries: 5
-    
+
   main-service:
     build:
       context: ./Gym-Spring-Boot
       dockerfile: Dockerfile
     container_name: main-service
     ports:
-      - "8080:8080"        
+      - "8080:8080"
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_PROFILES_ACTIVE=local
+      - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
+      - ACTIVEMQ_USER=admin
+      - ACTIVEMQ_PASSWORD=admin
+      - MONGO_URI=mongodb://mongo:27017/trainingsdb
     depends_on:
       - eureka-server
       - training-microservice
+      - activemq
+      - mongo
     networks:
       - app-network
+
+volumes:
+  mongo-data:
 
 networks:
   app-network:

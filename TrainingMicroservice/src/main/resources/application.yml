@@ -23,11 +23,15 @@ spring:
           public-key-location: classpath:keys/public.pem
           private-key-location: classpath:keys/private.pem
 
-  datasource:
-    url: jdbc:h2:mem:trainingsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: SA
-    password:
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/trainingsdb}
+
+#  datasource:
+#    url: jdbc:h2:mem:trainingsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#    driver-class-name: org.h2.Driver
+#    username: SA
+#    password:
 
   jpa:
     hibernate:
