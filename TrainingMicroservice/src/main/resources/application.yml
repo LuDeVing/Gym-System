@@ -6,7 +6,7 @@ spring:
     name: training-microservice
 
   activemq:
-    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://activemq:61616}
     user: ${ACTIVEMQ_USER:admin}
     password: ${ACTIVEMQ_PASSWORD:admin}
     pool:
@@ -23,24 +23,11 @@ spring:
           public-key-location: classpath:keys/public.pem
           private-key-location: classpath:keys/private.pem
 
-  data:
-    mongodb:
-      uri: ${MONGO_URI:mongodb://localhost:27017/trainingsdb}
-
-#  datasource:
-#    url: jdbc:h2:mem:trainingsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-#    driver-class-name: org.h2.Driver
-#    username: SA
-#    password:
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 eureka:
   client:
@@ -53,8 +40,29 @@ eureka:
     hostname: training-microservice
     nonSecurePort: 8081
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
+---
+spring:
+  profiles: mongo
+
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://mongo:27017/trainingsdb}
+
+---
+spring:
+  profiles: sql
+
+  datasource:
+    url: jdbc:h2:mem:trainingsdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: SA
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

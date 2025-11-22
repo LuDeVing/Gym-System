@@ -61,12 +61,13 @@ services:
       - "8081:8081"
     environment:
       - EUREKA_URI=http://eureka-server:8761/eureka
-      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_PROFILES_ACTIVE=mongo
       - SERVER_PORT=8081
       - ACTIVEMQ_BROKER_URL=tcp://activemq:61616
       - ACTIVEMQ_USER=admin
       - ACTIVEMQ_PASSWORD=admin
       - MONGO_URI=mongodb://mongo:27017/trainingsdb
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/keys/
     depends_on:
       - eureka-server
       - activemq
@@ -78,6 +79,9 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    volumes:
+      - ./keys:/app/keys:ro
+    restart: unless-stopped
 
   main-service:
     build:
