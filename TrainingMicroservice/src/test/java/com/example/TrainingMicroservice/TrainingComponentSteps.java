@@ -8,15 +8,18 @@ import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 public class TrainingComponentSteps {
 
@@ -53,6 +56,20 @@ public class TrainingComponentSteps {
 				Map.of("sub", username)
 		);
 		this.tempJwt = jwt;
+	}
+
+	@Given("Trainer {string} has hours for {string}")
+	public void trainer_has_hours_for(String username, String yearMonth) {
+		Map<String, Integer> map = new HashMap<>();
+		map.put(yearMonth, 8);
+		Mockito.when(workloadServiceMock.getMonthlyHours(eq(username), anyString(), any()))
+				.thenReturn(map);
+	}
+
+	@Given("Trainer {string} does not exist")
+	public void trainer_does_not_exist(String username) {
+		Mockito.when(workloadServiceMock.getMonthlyHours(eq(username), anyString(), any()))
+				.thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Trainer not found"));
 	}
 
 	@When("the client requests GET /workload/{string}/training-hours with the JWT")
@@ -103,6 +120,14 @@ public class TrainingComponentSteps {
 		Assertions.assertEquals(403, rse.getStatusCode().value());
 	}
 
+	@Then("the service should return NOT_FOUND")
+	public void service_should_return_not_found() {
+		Assertions.assertNotNull(lastException, "expected exception but none thrown");
+		Assertions.assertTrue(lastException instanceof ResponseStatusException, "expected ResponseStatusException");
+		ResponseStatusException rse = (ResponseStatusException) lastException;
+		Assertions.assertEquals(404, rse.getStatusCode().value());
+	}
+
 	@Given("a Training request missing duration")
 	public void training_request_missing_duration() {
 		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
@@ -110,10 +135,116 @@ public class TrainingComponentSteps {
 		req.setTrainerFirstName("Alice");
 		req.setTrainerLastName("Tester");
 		req.setTrainingDate(LocalDate.of(2025, 11, 1));
-		req.setTrainingDuration(null); // missing duration
+		req.setTrainingDuration(null);
 		req.setActionType("ADD");
 		this.invalidRequest = req;
 
+		setupRealWorkloadWithMockStore();
+	}
+
+	@Given("a Training request missing trainer username")
+	public void training_request_missing_username() {
+		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
+		req.setTrainerUsername(null);
+		req.setTrainerFirstName("Alice");
+		req.setTrainerLastName("Tester");
+		req.setTrainingDate(LocalDate.of(2025, 11, 1));
+		req.setTrainingDuration(2);
+		req.setActionType("ADD");
+		this.invalidRequest = req;
+
+		setupRealWorkloadWithMockStore();
+	}
+
+	@Given("a Training request missing training date")
+	public void training_request_missing_date() {
+		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
+		req.setTrainerUsername("alice");
+		req.setTrainerFirstName("Alice");
+		req.setTrainerLastName("Tester");
+		req.setTrainingDate(null);
+		req.setTrainingDuration(2);
+		req.setActionType("ADD");
+		this.invalidRequest = req;
+
+		setupRealWorkloadWithMockStore();
+	}
+
+	@Given("a Training request with non positive duration")
+	public void training_request_invalid_duration() {
+		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
+		req.setTrainerUsername("alice");
+		req.setTrainerFirstName("Alice");
+		req.setTrainerLastName("Tester");
+		req.setTrainingDate(LocalDate.of(2025, 11, 1));
+		req.setTrainingDuration(0);
+		req.setActionType("ADD");
+		this.invalidRequest = req;
+
+		setupRealWorkloadWithMockStore();
+	}
+
+	@Given("a Training request with unknown action")
+	public void training_request_unknown_action() {
+		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
+		req.setTrainerUsername("alice");
+		req.setTrainerFirstName("Alice");
+		req.setTrainerLastName("Tester");
+		req.setTrainingDate(LocalDate.of(2025, 11, 1));
+		req.setTrainingDuration(2);
+		req.setActionType("UPDATE");
+		this.invalidRequest = req;
+
+		setupRealWorkloadWithMockStore();
+	}
+
+	@Given("store.deleteDuration will throw not found")
+	public void store_delete_throws_not_found() {
+		storeMock = Mockito.mock(com.example.TrainingMicroservice.Stores.TrainerSummaryStore.class);
+		Mockito.doThrow(new IllegalArgumentException("Trainer not found"))
+				.when(storeMock).deleteDuration(anyString(), Mockito.anyInt(), Mockito.anyInt(), Mockito.anyInt());
+		realWorkloadService = new com.example.TrainingMicroservice.Service.WorkloadService();
+		try {
+			java.lang.reflect.Field f = com.example.TrainingMicroservice.Service.WorkloadService.class.getDeclaredField("store");
+			f.setAccessible(true);
+			f.set(realWorkloadService, storeMock);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
+		req.setTrainerUsername("alice");
+		req.setTrainerFirstName("Alice");
+		req.setTrainerLastName("Tester");
+		req.setTrainingDate(LocalDate.of(2025, 11, 1));
+		req.setTrainingDuration(2);
+		req.setActionType("DELETE");
+		this.invalidRequest = req;
+	}
+
+	@Given("store.addDuration will throw illegal argument")
+	public void store_add_throws_illegal_argument() {
+		storeMock = Mockito.mock(com.example.TrainingMicroservice.Stores.TrainerSummaryStore.class);
+		Mockito.doThrow(new IllegalArgumentException("Invalid operation"))
+				.when(storeMock).addDuration(anyString(), anyString(), anyString(), Mockito.anyBoolean(), Mockito.anyInt(), Mockito.anyInt(), Mockito.anyInt());
+		realWorkloadService = new com.example.TrainingMicroservice.Service.WorkloadService();
+		try {
+			java.lang.reflect.Field f = com.example.TrainingMicroservice.Service.WorkloadService.class.getDeclaredField("store");
+			f.setAccessible(true);
+			f.set(realWorkloadService, storeMock);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		TrainingMicroserviceRequest req = new TrainingMicroserviceRequest();
+		req.setTrainerUsername("alice");
+		req.setTrainerFirstName("Alice");
+		req.setTrainerLastName("Tester");
+		req.setTrainingDate(LocalDate.of(2025, 11, 1));
+		req.setTrainingDuration(2);
+		req.setActionType("ADD");
+		this.invalidRequest = req;
+	}
+
+	private void setupRealWorkloadWithMockStore() {
 		storeMock = Mockito.mock(com.example.TrainingMicroservice.Stores.TrainerSummaryStore.class);
 		realWorkloadService = new com.example.TrainingMicroservice.Service.WorkloadService();
 		try {
