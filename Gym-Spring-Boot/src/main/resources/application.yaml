@@ -152,3 +152,46 @@ logging:
     root: WARN
     org.springframework.security: WARN
     org.hibernate.SQL: ERROR
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+  server:
+    port: 8080
+
+  datasource:
+    url: jdbc:postgresql://postgres-db:5432/gym
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+
+storage:
+  file: classpath:initial-data.json
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka}
+  instance:
+    preferIpAddress: true
+    hostname: main-service

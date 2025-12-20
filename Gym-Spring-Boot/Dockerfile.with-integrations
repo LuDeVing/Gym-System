@@ -10,14 +10,18 @@ RUN mvn package -DskipTests
 FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
 
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
 COPY --from=build /app/target/Gym-Spring-Boot-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
-# Disable integrations
-ENV SPRING_PROFILES_ACTIVE=local
-ENV EUREKA_CLIENT_ENABLED=false
-ENV SPRING_CLOUD_DISCOVERY_ENABLED=false
-ENV SPRING_CLOUD_OPENFEIGN_CIRCUITBREAKER_ENABLED=false
+# Enable all integrations
+ENV SPRING_PROFILES_ACTIVE=docker
+ENV EUREKA_CLIENT_ENABLED=true
+ENV SPRING_CLOUD_DISCOVERY_ENABLED=true
+ENV SPRING_CLOUD_OPENFEIGN_CIRCUITBREAKER_ENABLED=true
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
